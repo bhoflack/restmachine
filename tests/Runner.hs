@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Network.HTTP.Types.Method (methodGet)
-import Network.HTTP.Types.Status (status200, status500)
+import Network.HTTP.Types.Status (status200, status404)
 
 import Restmachine.Core (run)
 import Restmachine.Core.Types (Request (..), Response (..))
@@ -15,7 +15,7 @@ defaultRequest = Request methodGet [] "hello world"
 noResources :: Assertion
 noResources = do
   resp <- run defaultRequest
-  assertEqual "" (Response status500 [] "") resp
+  assertEqual "" (Response status404 [] "") resp
 
 main :: IO ()
 main = defaultMain tests
