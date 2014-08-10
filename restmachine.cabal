@@ -1,0 +1,34 @@
+name:                restmachine
+version:             0.1.0.0
+synopsis:            A REST-based system for building web applications.
+-- description:         
+homepage:            http://github.com/bhoflack/restmachine
+license:             BSD3
+license-file:        LICENSE
+author:              Brecht Hoflack
+maintainer:          brecht.hoflack@gmail.com
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Restmachine.Core
+                     , Restmachine.Core.Types
+  build-depends:       base >=4.6 && <4.7
+                     , http-types >= 0.8.5
+                     , bytestring >= 0.10.0.2
+                     , lens >= 4.3.3
+  default-language:    Haskell2010
+
+test-suite tests
+  type:			exitcode-stdio-1.0
+  hs-source-dirs:	tests
+  main-is:		Runner.hs
+  
+  build-depends:	HUnit
+                      , base
+                      , bytestring
+                      , restmachine
+                      , test-framework
+                      , test-framework-hunit
+                      , http-types
