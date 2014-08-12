@@ -41,4 +41,44 @@ b11 res req = do
   isUriTooLong = res ^. uriTooLong
 
 b10 :: Resource -> Request -> IO Response
-b10 res req = return $ Response H.methodNotAllowed405 [] ""
+b10 res req = do
+  reqMethodAllowed <- isMethodAllowed req
+  if reqMethodAllowed
+    then b9 res req
+    else return $ Response H.methodNotAllowed405 [] ""
+
+  where
+  isMethodAllowed = res ^. methodAllowed
+
+b9 :: Resource -> Request -> IO Response
+b9 res req = do
+  reqMalformed <- isMalformed req
+  if reqMalformed
+    then return $ Response H.badRequest400 [] ""
+    else b8 res req
+
+  where
+  isMalformed = res ^. malformed
+
+b8 :: Resource -> Request -> IO Response
+b8 res req = do
+  reqAuthorized <- isAuthorized req
+  if reqAuthorized
+    then b7 res req
+    else return $ Response H.unauthorized401 [] ""
+
+  where
+  isAuthorized = res ^. authorized
+
+b7 :: Resource -> Request -> IO Response
+b7 res req = do
+  reqForbidden <- isForbidden req
+  if reqForbidden
+    then return $ Response H.forbidden403 [] ""
+    else b6 res req
+
+  where
+  isForbidden = res ^. forbidden
+
+b6 :: Resource -> Request -> IO Response
+b6 res req = return $ Response H.notImplemented501 [] ""

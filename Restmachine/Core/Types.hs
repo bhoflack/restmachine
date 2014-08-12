@@ -32,6 +32,9 @@ data Resource = Resource
   , _knownMethod        :: Request -> IO Bool
   , _uriTooLong         :: Request -> IO Bool
   , _methodAllowed      :: Request -> IO Bool
+  , _malformed          :: Request -> IO Bool
+  , _authorized         :: Request -> IO Bool
+  , _forbidden          :: Request -> IO Bool
   }
 makeLenses ''Resource
 
@@ -42,4 +45,7 @@ defaultResource = Resource { _serviceAvailable = \_ -> return False
                            , _knownMethod =      \_ -> return False
                            , _uriTooLong =       \_ -> return False
                            , _methodAllowed =    \_ -> return False
+                           , _malformed =        \_ -> return False
+                           , _authorized =       \_ -> return True
+                           , _forbidden =        \_ -> return False
                            }
