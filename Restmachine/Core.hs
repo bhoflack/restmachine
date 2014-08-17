@@ -5,9 +5,8 @@ module Restmachine.Core
 
 import Network.HTTP.Types.Status (status404)
 
+import Restmachine.Core.Flow (runFlow)
 import Restmachine.Core.Types
 
-run :: Request a -> IO Response
-run req = return response
-  where
-  response = Response status404 [] ""
+run :: Resource -> Request -> IO Response
+run = runFlow
