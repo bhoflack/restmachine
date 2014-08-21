@@ -1,9 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings
+           , RankNTypes #-}
 module Restmachine.Core.Flow
   ( runFlow
   ) where
 
-import Control.Lens ((^.))
+import Control.Lens (Lens', (^.))
 import Restmachine.Core.Types
 
 import qualified Network.HTTP.Types.Status as H
@@ -70,15 +71,24 @@ b8 res req = do
   where
   isAuthorized = res ^. authorized
 
-b7 :: Resource -> Request -> IO Response
-b7 res req = do
-  reqForbidden <- isForbidden req
-  if reqForbidden
-    then return $ Response H.forbidden403 [] ""
-    else b6 res req
+--b7 :: Resource -> Request -> IO Response
+--b7 res req = do
+-- reqForbidden <- isForbidden req
+--  if reqForbidden
+--    then return $ Response H.forbidden403 [] ""
+--    else b6 res req
 
-  where
-  isForbidden = res ^. forbidden
+--  where
+--  isForbidden = res ^. forbidden
+
+b7 res req = junction forbidden (return $ Response H.forbidden403 [] "") (b6 res req) res req
 
 b6 :: Resource -> Request -> IO Response
 b6 res req = return $ Response H.notImplemented501 [] ""
+
+junction :: Lens' Resource (Request -> IO Bool) -> (IO Response) -> (IO Response) -> Resource -> Request -> IO Response
+junction l t f res req = do
+  r <- (res ^. l) req
+  if r
+    then t
+    else f
