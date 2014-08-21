@@ -8,6 +8,9 @@ import Network.HTTP.Types.Method (Method)
 import Network.HTTP.Types.Header (ResponseHeaders, RequestHeaders)
 import Network.HTTP.Types.Status (Status)
 
+import qualified Data.ByteString as BS
+import qualified Network.HTTP.Types.Status as H
+
 -- | The 'Request' made.
 data Request = Request 
   { _requestMethod       :: Method
@@ -28,24 +31,35 @@ makeLenses ''Response
 
 -- | The definition of a REST 'Resource'.
 data Resource = Resource
-  { _serviceAvailable   :: Request -> IO Bool
-  , _knownMethod        :: Request -> IO Bool
-  , _uriTooLong         :: Request -> IO Bool
-  , _methodAllowed      :: Request -> IO Bool
-  , _malformed          :: Request -> IO Bool
-  , _authorized         :: Request -> IO Bool
-  , _forbidden          :: Request -> IO Bool
+  { _serviceAvailable      :: Request -> IO Bool
+  , _knownMethod           :: Request -> IO Bool
+  , _uriTooLong            :: Request -> IO Bool
+  , _methodAllowed         :: Request -> IO Bool
+  , _malformed             :: Request -> IO Bool
+  , _authorized            :: Request -> IO Bool
+  , _forbidden             :: Request -> IO Bool
+  , _unknownContentHeader  :: Request -> IO Bool
+  , _unknownContentType    :: Request -> IO Bool
+  , _requestEntityTooLarge :: Request -> IO Bool
+  , _response              :: Request -> IO Response
   }
 makeLenses ''Resource
 
 data DefaultContext = DefaultContext
 
+static :: Bool -> Request -> IO Bool
+static v _ = return v
+
 defaultResource :: Resource
-defaultResource = Resource { _serviceAvailable = \_ -> return False
-                           , _knownMethod =      \_ -> return False
-                           , _uriTooLong =       \_ -> return False
-                           , _methodAllowed =    \_ -> return False
-                           , _malformed =        \_ -> return False
-                           , _authorized =       \_ -> return True
-                           , _forbidden =        \_ -> return False
+defaultResource = Resource { _serviceAvailable =        static False
+                           , _knownMethod =             static False
+                           , _uriTooLong =              static False
+                           , _methodAllowed =           static False
+                           , _malformed =               static False
+                           , _authorized =              static True
+                           , _forbidden =               static False
+                           , _unknownContentHeader =    static False
+                           , _unknownContentType =      static False
+                           , _requestEntityTooLarge =   static False
+                           , _response =                \_ -> return $ Response H.ok200 [] BS.empty
                            }
