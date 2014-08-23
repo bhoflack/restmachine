@@ -29,7 +29,7 @@ main = defaultMain tests
 
 tests :: [Test]
 tests = [
-  testGroup "statusCode" [
+    testGroup "statusCode" [
       testCase "service unavailable" serviceUnavailable
     , testCase "unknown method" unknownMethod
     , testCase "uri too long" uriTooLong
@@ -77,6 +77,7 @@ requestTooLarge = expectStatus H.status413
 responseHtml = do
   resp <- run testResource defaultRequest
   assertEqual "" "<html><body>foo</body></html>" (resp ^. T.responseBody)
+  assertEqual "" H.status200 $ resp ^. T.responseStatus
 
 expectStatus :: Status -> Resource -> Assertion
 expectStatus stat res = do
