@@ -47,7 +47,7 @@ makeLenses ''Resource
 
 data DefaultContext = DefaultContext
 
-static :: Bool -> Request -> IO Bool
+static :: a -> Request -> IO a
 static v _ = return v
 
 defaultResource :: Resource
@@ -61,5 +61,5 @@ defaultResource = Resource { _serviceAvailable =        static False
                            , _unknownContentHeader =    static False
                            , _unknownContentType =      static False
                            , _requestEntityTooLarge =   static False
-                           , _response =                \_ -> return $ Response H.ok200 [] BS.empty
+                           , _response =                static $ Response H.ok200 [] BS.empty
                            }

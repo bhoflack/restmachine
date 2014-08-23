@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (.~), (^.))
 import Data.ByteString (ByteString)
 
 import Network.HTTP.Types.Method (methodGet)
 import Network.HTTP.Types.Status (Status)
 
 import Restmachine.Core (run)
-import Restmachine.Core.Types (Resource, Response (..), Request (..), defaultResource)
+import Restmachine.Core.Types (Resource, Response (..), Request (..), defaultResource, static)
 
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -18,44 +18,67 @@ import qualified Restmachine.Core.Types as T
 
 defaultRequest = Request methodGet [] "hello world"
 
-verifyResponse :: Resource -> Status -> Assertion
-verifyResponse res stat = do
-  resp <- run res defaultRequest
-  assertEqual "" (Response stat [] "") resp
-
-unavailable    = verifyResponse defaultResource H.status503
-notImplemented = verifyResponse (defaultResource & T.serviceAvailable  .~ \_ -> return True) H.status501
-longUri        = verifyResponse (defaultResource & (T.serviceAvailable .~ \_ -> return True)
-                                                 & (T.knownMethod      .~ \_ -> return True)
-                                                 & (T.uriTooLong       .~ \_ -> return True)) H.status414
-methodNotAllowed = verifyResponse (defaultResource & (T.serviceAvailable .~ \_ -> return True)
-                                                   & (T.knownMethod      .~ \_ -> return True)
-                                                   & (T.methodAllowed    .~ \_ -> return False)) H.status405
-malformedRequest = verifyResponse (defaultResource & (T.serviceAvailable .~ \_ -> return True)
-                                                   & (T.knownMethod      .~ \_ -> return True)
-                                                   & (T.methodAllowed    .~ \_ -> return True)
-                                                   & (T.malformed        .~ \_ -> return True)) H.status400
-unauthorized = verifyResponse (defaultResource & (T.serviceAvailable .~ \_ -> return True)
-                                               & (T.knownMethod      .~ \_ -> return True)
-                                               & (T.methodAllowed    .~ \_ -> return True)
-                                               & (T.authorized       .~ \_ -> return False)) H.status401
-forbidden = verifyResponse (defaultResource & (T.serviceAvailable .~ \_ -> return True)
-                                            & (T.knownMethod      .~ \_ -> return True)
-                                            & (T.methodAllowed    .~ \_ -> return True)
-                                            & (T.forbidden        .~ \_ -> return True)) H.status403
+testResource = defaultResource & (T.serviceAvailable .~ static True)
+                               & (T.knownMethod      .~ static True)
+                               & (T.methodAllowed    .~ static True)
+                               & (T.forbidden        .~ static False)
+                               & (T.response         .~ (static $ Response H.status200 [] "<html><body>foo</body></html>"))
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: [Test]
 tests = [
-  testGroup "run" [
-      testCase "unavailable" unavailable
-    , testCase "service not implemented" notImplemented
-    , testCase "uri too long" longUri
+  testGroup "statusCode" [
+      testCase "service unavailable" serviceUnavailable
+    , testCase "unknown method" unknownMethod
+    , testCase "uri too long" uriTooLong
     , testCase "method not allowed" methodNotAllowed
-    , testCase "malformed" malformedRequest
+    , testCase "bad request" badRequest
     , testCase "unauthorized" unauthorized
     , testCase "forbidden" forbidden
+    , testCase "not implemented" notImplemented
+    , testCase "unsupported media type" unsupportedMediaType
+    , testCase "request too large" requestTooLarge
+    , testCase "html response" responseHtml
     ]
   ]
+
+serviceUnavailable = expectStatus H.status503
+                                  (testResource & T.serviceAvailable .~ static False)
+
+unknownMethod = expectStatus H.status501
+                             (testResource & T.knownMethod .~ static False)
+
+uriTooLong = expectStatus H.status414
+                          (testResource & T.uriTooLong .~ static True)
+
+methodNotAllowed = expectStatus H.status405
+                                (testResource & T.methodAllowed .~ static False)
+
+badRequest = expectStatus H.status400
+                          (testResource & T.malformed .~ static True)
+
+unauthorized = expectStatus H.status401
+                            (testResource & T.authorized .~ static False)
+
+forbidden = expectStatus H.status403
+                         (testResource & T.forbidden .~ static True)
+
+notImplemented = expectStatus H.status501
+                              (testResource & T.unknownContentHeader .~ static True)
+
+unsupportedMediaType = expectStatus H.status415
+                                    (testResource & T.unknownContentType .~ static True)
+
+requestTooLarge = expectStatus H.status413
+                               (testResource & T.requestEntityTooLarge .~ static True)
+
+responseHtml = do
+  resp <- run testResource defaultRequest
+  assertEqual "" "<html><body>foo</body></html>" (resp ^. T.responseBody)
+
+expectStatus :: Status -> Resource -> Assertion
+expectStatus stat res = do
+  resp <- run res defaultRequest
+  assertEqual "" stat (resp ^. T.responseStatus)
