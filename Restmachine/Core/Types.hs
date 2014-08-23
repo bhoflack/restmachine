@@ -47,6 +47,9 @@ makeLenses ''Resource
 
 data DefaultContext = DefaultContext
 
+data Decision = B13 | B12 | B11 | B10 | B9 | B8 | B7 | B6 | B5 | B4 | B3
+  deriving (Show, Eq)
+
 static :: a -> Request -> IO a
 static v _ = return v
 

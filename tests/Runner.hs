@@ -7,7 +7,7 @@ import Network.HTTP.Types.Method (methodGet)
 import Network.HTTP.Types.Status (Status)
 
 import Restmachine.Core (run)
-import Restmachine.Core.Types (Resource, Response (..), Request (..), defaultResource, static)
+import Restmachine.Core.Types (Decision (..), Resource, Response (..), Request (..), defaultResource, static)
 
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -29,57 +29,93 @@ main = defaultMain tests
 
 tests :: [Test]
 tests = [
-    testGroup "statusCode" [
-      testCase "service unavailable" serviceUnavailable
-    , testCase "unknown method" unknownMethod
-    , testCase "uri too long" uriTooLong
-    , testCase "method not allowed" methodNotAllowed
-    , testCase "bad request" badRequest
-    , testCase "unauthorized" unauthorized
-    , testCase "forbidden" forbidden
-    , testCase "not implemented" notImplemented
-    , testCase "unsupported media type" unsupportedMediaType
-    , testCase "request too large" requestTooLarge
-    , testCase "html response" responseHtml
-    ]
+      testGroup "statusCode" [
+        testCase "service unavailable" serviceUnavailable
+      , testCase "unknown method" unknownMethod
+      , testCase "uri too long" uriTooLong
+      , testCase "method not allowed" methodNotAllowed
+      , testCase "bad request" badRequest
+      , testCase "unauthorized" unauthorized
+      , testCase "forbidden" forbidden
+      , testCase "not implemented" notImplemented
+      , testCase "unsupported media type" unsupportedMediaType
+      , testCase "request too large" requestTooLarge
+      , testCase "html response" responseHtml
+      ]
   ]
 
-serviceUnavailable = expectStatus H.status503
-                                  (testResource & T.serviceAvailable .~ static False)
+serviceUnavailable = do
+  expectStatus H.status503 resource
+  expectPath [B13] resource
+  where
+  resource = (testResource & T.serviceAvailable .~ static False)
 
-unknownMethod = expectStatus H.status501
-                             (testResource & T.knownMethod .~ static False)
+unknownMethod = do
+  expectStatus H.status501 resource
+  expectPath [B13, B12] resource                             
+  where
+  resource = (testResource & T.knownMethod .~ static False)
 
-uriTooLong = expectStatus H.status414
-                          (testResource & T.uriTooLong .~ static True)
+uriTooLong = do
+  expectStatus H.status414 resource
+  expectPath [B13, B12, B11] resource
+  where
+  resource = (testResource & T.uriTooLong .~ static True)
 
-methodNotAllowed = expectStatus H.status405
-                                (testResource & T.methodAllowed .~ static False)
+methodNotAllowed = do
+  expectStatus H.status405 resource
+  expectPath [B13, B12, B11, B10] resource
+  where
+  resource = (testResource & T.methodAllowed .~ static False)
 
-badRequest = expectStatus H.status400
-                          (testResource & T.malformed .~ static True)
+badRequest = do
+  expectStatus H.status400 resource
+  expectPath [B13, B12, B11, B10, B9] resource
+  where
+  resource = (testResource & T.malformed .~ static True)
 
-unauthorized = expectStatus H.status401
-                            (testResource & T.authorized .~ static False)
+unauthorized = do
+  expectStatus H.status401 resource
+  expectPath [B13, B12, B11, B10, B9, B8] resource
+  where
+  resource = (testResource & T.authorized .~ static False)
 
-forbidden = expectStatus H.status403
-                         (testResource & T.forbidden .~ static True)
+forbidden = do
+  expectStatus H.status403 resource
+  expectPath [B13, B12, B11, B10, B9, B8, B7] resource
+  where
+  resource = (testResource & T.forbidden .~ static True)
 
-notImplemented = expectStatus H.status501
-                              (testResource & T.unknownContentHeader .~ static True)
+notImplemented = do
+  expectStatus H.status501 resource
+  expectPath [B13, B12, B11, B10, B9, B8, B7, B6] resource
+  where
+  resource = (testResource & T.unknownContentHeader .~ static True)
 
-unsupportedMediaType = expectStatus H.status415
-                                    (testResource & T.unknownContentType .~ static True)
+unsupportedMediaType = do
+  expectStatus H.status415 resource
+  expectPath [B13, B12, B11, B10, B9, B8, B7, B6, B5] resource
+  where
+  resource = (testResource & T.unknownContentType .~ static True)
 
-requestTooLarge = expectStatus H.status413
-                               (testResource & T.requestEntityTooLarge .~ static True)
+requestTooLarge = do
+  expectStatus H.status413 resource
+  expectPath [B13, B12, B11, B10, B9, B8, B7, B6, B5, B4] resource
+  where
+  resource = (testResource & T.requestEntityTooLarge .~ static True)
 
 responseHtml = do
-  resp <- run testResource defaultRequest
+  (resp, _) <- run testResource defaultRequest
   assertEqual "" "<html><body>foo</body></html>" (resp ^. T.responseBody)
   assertEqual "" H.status200 $ resp ^. T.responseStatus
+  expectPath [B13, B12, B11, B10, B9, B8, B7, B6, B5, B4, B3] testResource
+
+expectPath :: [Decision] -> Resource -> Assertion
+expectPath p r = do
+  (_, path) <- run r defaultRequest
+  assertEqual "" p path
 
 expectStatus :: Status -> Resource -> Assertion
 expectStatus stat res = do
-  resp <- run res defaultRequest
+  (resp, _) <- run res defaultRequest
   assertEqual "" stat (resp ^. T.responseStatus)
