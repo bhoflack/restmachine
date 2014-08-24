@@ -1,4 +1,4 @@
-name:                restmachine
+name:                restmachine-core
 version:             0.1.0.0
 synopsis:            A REST-based system for building web applications.
 -- description:         

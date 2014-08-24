@@ -9,6 +9,7 @@ import Network.HTTP.Types.Header (ResponseHeaders, RequestHeaders)
 import Network.HTTP.Types.Status (Status)
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Network.HTTP.Types.Status as H
 
 -- | The 'Request' made.
@@ -24,7 +25,7 @@ makeLenses ''Request
 data Response = Response
   { _responseStatus     :: Status
   , _responseHeaders    :: ResponseHeaders
-  , _responseBody       :: ByteString
+  , _responseBody       :: BSL.ByteString
   }
   deriving (Show, Eq)
 makeLenses ''Response
@@ -64,5 +65,5 @@ defaultResource = Resource { _serviceAvailable =        static False
                            , _unknownContentHeader =    static False
                            , _unknownContentType =      static False
                            , _requestEntityTooLarge =   static False
-                           , _response =                static $ Response H.ok200 [] BS.empty
+                           , _response =                static $ Response H.ok200 [] BSL.empty
                            }
