@@ -21,6 +21,7 @@ library
                      , lens >= 4.3.3
                      , mtl >= 2.1.2
                      , transformers >= 0.4.1.0
+                     , text >= 0.11.3.1
   default-language:    Haskell2010
 
 test-suite tests
@@ -31,7 +32,7 @@ test-suite tests
   build-depends:	HUnit
                       , base
                       , bytestring
-                      , restmachine
+                      , restmachine-core
                       , test-framework
                       , test-framework-hunit
                       , http-types

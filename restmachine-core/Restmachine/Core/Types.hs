@@ -4,9 +4,12 @@ module Restmachine.Core.Types where
 import Control.Lens (makeLenses)
 import Control.Monad.State (StateT (..))
 import Data.ByteString (ByteString)
+import Data.Text (Text)
 import Network.HTTP.Types.Method (Method)
 import Network.HTTP.Types.Header (ResponseHeaders, RequestHeaders)
 import Network.HTTP.Types.Status (Status)
+import Network.HTTP.Types.URI (Query)
+import Network.HTTP.Types.Version (HttpVersion)
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
@@ -15,6 +18,8 @@ import qualified Network.HTTP.Types.Status as H
 -- | The 'Request' made.
 data Request = Request 
   { _requestMethod       :: Method
+  , _httpVersion         :: HttpVersion
+  , _pathInfo            :: [Text]
   , _requestHeaders      :: RequestHeaders
   , _body                :: ByteString
   } 

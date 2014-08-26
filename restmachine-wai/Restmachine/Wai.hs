@@ -2,7 +2,7 @@ module Restmachine.Wai
   (application)
   where
 import Control.Lens ((^.))
-import Network.Wai (Application, requestBody, requestMethod, requestHeaders, responseLBS)
+import Network.Wai (Application, httpVersion, pathInfo, requestBody, requestMethod, requestHeaders, responseLBS)
 import Restmachine.Core (run)
 import Restmachine.Core.Types (Resource (..), Request (..), responseStatus, responseHeaders, responseBody)
 
@@ -11,7 +11,7 @@ import Restmachine.Core.Types (Resource (..), Request (..), responseStatus, resp
 application :: Resource -> Application
 application res req respond = do
   reqBody <- requestBody req
-  let req' = Request (requestMethod req) (requestHeaders req) reqBody
+  let req' = Request (requestMethod req) (httpVersion req) (pathInfo req) (requestHeaders req) reqBody
   (resp, _) <- run res req'
   let resp' = responseLBS (resp ^. responseStatus) (resp ^. responseHeaders) (resp ^. responseBody)
   respond resp'
