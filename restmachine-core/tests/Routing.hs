@@ -3,7 +3,7 @@ module Routing where
 
 import Control.Applicative ((<$>))
 import Control.Lens ((&), (.~))
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, isNothing)
 import Data.String (fromString)
 import Data.Text (Text)
 
@@ -45,8 +45,13 @@ prop_match_everything uri = isJust res
 
 prop_subpath uri = isJust res
   where
-  req = defaultRequest & pathInfo .~ ["/a"] ++ uri
-  res = route [(["/a", "*"], defaultResource)] req
+  req = defaultRequest & pathInfo .~ ["a"] ++ uri
+  res = route [(["a", "*"], defaultResource)] req
+
+prop_nomatch uri = isNothing res
+  where
+  req = defaultRequest & pathInfo .~ uri
+  res = route [(["nomatch"], defaultResource)] req
 
 tests :: [Test]
 tests = [
@@ -54,5 +59,6 @@ tests = [
       testProperty "identical matcher" prop_identical
     , testProperty "match everything" prop_match_everything
     , testProperty "match the subpath" prop_subpath
+    , testProperty "no match" prop_nomatch
     ]
   ]
