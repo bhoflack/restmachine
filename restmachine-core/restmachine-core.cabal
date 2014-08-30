@@ -14,6 +14,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Restmachine.Core
                      , Restmachine.Core.Types
+                     , Restmachine.Core.Routing
   other-modules:       Restmachine.Core.Flow
   build-depends:       base >=4.6 && <4.7
                      , http-types >= 0.8.5
@@ -35,5 +36,8 @@ test-suite tests
                       , restmachine-core
                       , test-framework
                       , test-framework-hunit
+                      , test-framework-quickcheck2
                       , http-types
                       , lens
+                      , text
+                      , QuickCheck

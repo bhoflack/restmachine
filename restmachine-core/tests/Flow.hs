@@ -11,7 +11,7 @@ import Network.HTTP.Types.Version (http11)
 import Restmachine.Core (run)
 import Restmachine.Core.Types (Decision (..), Resource, Response (..), Request (..), defaultResource, static)
 
-import Test.Framework (Test, defaultMain, testGroup)
+import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (Assertion, assertEqual, (~=?))
 
@@ -104,17 +104,17 @@ requestTooLarge = do
   resource = (testResource & T.requestEntityTooLarge .~ static True)
 
 responseHtml = do
-  (resp, _) <- run testResource defaultRequest
+  (resp, _) <- run defaultRequest testResource
   assertEqual "" "<html><body>foo</body></html>" (resp ^. T.responseBody)
   assertEqual "" H.status200 $ resp ^. T.responseStatus
   expectPath [B13, B12, B11, B10, B9, B8, B7, B6, B5, B4, B3] testResource
 
 expectPath :: [Decision] -> Resource -> Assertion
 expectPath p r = do
-  (_, path) <- run r defaultRequest
+  (_, path) <- run defaultRequest r
   assertEqual "" p path
 
 expectStatus :: Status -> Resource -> Assertion
 expectStatus stat res = do
-  (resp, _) <- run res defaultRequest
+  (resp, _) <- run defaultRequest res
   assertEqual "" stat (resp ^. T.responseStatus)

@@ -11,7 +11,7 @@ import Restmachine.Core.Types
 
 import qualified Network.HTTP.Types.Status as H
 
-runFlow res req = runWriterT $ b13 res req
+runFlow req res = runWriterT $ b13 res req
 
 b13 = expect serviceAvailable B13 b12 H.serviceUnavailable503
 b12 = expect knownMethod B12 b11 H.notImplemented501
