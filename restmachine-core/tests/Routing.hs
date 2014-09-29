@@ -2,10 +2,11 @@
 module Routing where
 
 import Control.Applicative ((<$>))
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (.~), (^.))
+import Control.Monad.State (runState)
 import Data.Maybe (isJust, isNothing)
 import Data.String (fromString)
-import Data.Text (Text)
+import Data.Text (Text, intercalate)
 
 import Network.HTTP.Types.Method (methodGet)
 import Network.HTTP.Types.Version (http11)
@@ -20,7 +21,7 @@ import Restmachine.Core.Routing (route)
 
 import qualified Network.HTTP.Types.Status as H
 
-defaultRequest = Request methodGet http11 [] [] ""
+defaultRequest = InitialRequest methodGet http11 [] "" []
 
 resource1 = defaultResource & (serviceAvailable .~ static True)
                             & (knownMethod      .~ static True)
@@ -31,27 +32,27 @@ resource1 = defaultResource & (serviceAvailable .~ static True)
 instance Arbitrary Text where
   arbitrary = fromString <$> (arbitrary :: Gen String)
 
-prop_identical uri = isJust res
+prop_identical uri = isJust res && "" == req' ^. displayPath
   where
   r = defaultResource
-  req = defaultRequest & pathInfo .~ uri
-  res = route [(uri, r)] req
+  req = defaultRequest & path .~ uri
+  (res, req') = runState (route [(uri, r)]) req
 
-prop_match_everything uri = isJust res
+prop_match_everything uri = isJust res && intercalate "/" uri == req' ^. displayPath
   where
   r = defaultResource
-  req = defaultRequest & pathInfo .~ uri
-  res = route [(["*"], r)] req
+  req = defaultRequest & path .~ uri
+  (res, req') = runState (route [(["*"], r)]) req
 
 prop_subpath uri = isJust res
   where
-  req = defaultRequest & pathInfo .~ ["a"] ++ uri
-  res = route [(["a", "*"], defaultResource)] req
+  req = defaultRequest & path .~ ["a"] ++ uri
+  (res, _) = runState (route [(["a", "*"], defaultResource)]) req
 
 prop_nomatch uri = isNothing res
   where
-  req = defaultRequest & pathInfo .~ uri
-  res = route [(["nomatch"], defaultResource)] req
+  req = defaultRequest & path .~ uri
+  (res, _) = runState (route [(["nomatch"], defaultResource)]) req
 
 tests :: [Test]
 tests = [

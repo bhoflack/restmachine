@@ -41,3 +41,4 @@ test-suite tests
                       , lens
                       , text
                       , QuickCheck
+                      , mtl

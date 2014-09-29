@@ -18,7 +18,7 @@ import Test.HUnit (Assertion, assertEqual, (~=?))
 import qualified Network.HTTP.Types.Status as H
 import qualified Restmachine.Core.Types as T
 
-defaultRequest = Request methodGet http11 ["hello"] [] "hello world"
+defaultRequest = InitialRequest methodGet http11 [] "hello world" ["hello"]
 
 testResource = defaultResource & (T.serviceAvailable .~ static True)
                                & (T.knownMethod      .~ static True)

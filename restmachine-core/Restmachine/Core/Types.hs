@@ -16,13 +16,23 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Network.HTTP.Types.Status as H
 
 -- | The 'Request' made.
-data Request = Request 
-  { _requestMethod       :: Method
-  , _httpVersion         :: HttpVersion
-  , _pathInfo            :: [Text]
-  , _requestHeaders      :: RequestHeaders
-  , _body                :: ByteString
-  } 
+data Request = 
+    InitialRequest 
+      { _requestMethod       :: Method
+      , _httpVersion         :: HttpVersion
+      , _requestHeaders      :: RequestHeaders
+      , _body                :: ByteString
+      , _path                :: [Text]
+      }
+  | RoutedRequest
+      { _requestMethod       :: Method
+      , _httpVersion         :: HttpVersion
+      , _requestHeaders      :: RequestHeaders
+      , _body                :: ByteString
+      , _path                :: [Text]
+      , _displayPath         :: Text
+      , _pathInfo            :: [(Text, Text)]
+      }
   deriving (Show, Eq)
 makeLenses ''Request
 
