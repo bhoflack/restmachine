@@ -16,4 +16,5 @@ library
                      , wai >= 3.0.1.1
                      , restmachine-core >= 0.1.0.0
                      , lens >= 4.3.3
+                     , mtl >= 2.2.1
   default-language:    Haskell2010

@@ -1,4 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
+
+-- | The types used in the application.
 module Restmachine.Core.Types where
 
 import Control.Lens (makeLenses)
@@ -60,6 +62,13 @@ data Resource = Resource
   , _response              :: Request -> IO Response
   }
 makeLenses ''Resource
+
+-- | An 'Application' contains the the handlers that route to the correct 'Resource'.
+data Application = Application
+  { _routes      :: [([Text], Resource)]
+  , _fallback    :: Resource
+  }
+makeLenses ''Application
 
 data DefaultContext = DefaultContext
 
