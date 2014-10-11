@@ -23,14 +23,14 @@ data Request =
       { _requestMethod       :: Method
       , _httpVersion         :: HttpVersion
       , _requestHeaders      :: RequestHeaders
-      , _body                :: ByteString
+      , _body                :: BSL.ByteString
       , _path                :: [Text]
       }
   | RoutedRequest
       { _requestMethod       :: Method
       , _httpVersion         :: HttpVersion
       , _requestHeaders      :: RequestHeaders
-      , _body                :: ByteString
+      , _body                :: BSL.ByteString
       , _path                :: [Text]
       , _displayPath         :: Text
       , _pathInfo            :: [(Text, Text)]
@@ -79,10 +79,10 @@ static :: a -> Request -> IO a
 static v _ = return v
 
 defaultResource :: Resource
-defaultResource = Resource { _serviceAvailable =        static False
-                           , _knownMethod =             static False
+defaultResource = Resource { _serviceAvailable =        static True
+                           , _knownMethod =             static True
                            , _uriTooLong =              static False
-                           , _methodAllowed =           static False
+                           , _methodAllowed =           static True
                            , _malformed =               static False
                            , _authorized =              static True
                            , _forbidden =               static False

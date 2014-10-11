@@ -8,8 +8,6 @@ import Restmachine.Core (run')
 import Restmachine.Core.Routing (route)
 import Restmachine.Core.Types (Resource (..), Request (..), responseStatus, responseHeaders, responseBody)
 
-import qualified Data.ByteString.Lazy as BSL
-
 import qualified Network.Wai as W
 import qualified Restmachine.Core.Types as R
 
@@ -17,7 +15,7 @@ import qualified Restmachine.Core.Types as R
 wrap :: R.Application -> W.Application
 wrap app req respond = do
   reqBody <- lazyRequestBody req
-  let req' = InitialRequest (requestMethod req) (httpVersion req) (requestHeaders req) (BSL.toStrict reqBody) (pathInfo req)
+  let req' = InitialRequest (requestMethod req) (httpVersion req) (requestHeaders req) reqBody (pathInfo req)
       (res, req'')  = runState (route app) req'
   resp <- run' req'' res
   let resp' = responseLBS (resp ^. responseStatus) (resp ^. responseHeaders) (resp ^. responseBody)
